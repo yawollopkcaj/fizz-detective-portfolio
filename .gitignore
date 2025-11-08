@@ -1,0 +1,14 @@
+# big artifacts / local data
+models/**/saved_model/
+models/**/*.tflite
+models/**/*.h5
+models/**/*.onnx
+data/
+*.bag
+
+# python + editor
+__pycache__/
+*.pyc
+.DS_Store
+.vscode/
+.idea/

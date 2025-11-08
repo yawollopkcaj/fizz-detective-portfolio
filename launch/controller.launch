@@ -1,0 +1,18 @@
+<launch>
+  <arg name="team" default="TeamRed"/>
+  <arg name="pass" default="multi21"/>
+  <arg name="bc_dir" default="$(find controller_pkg)/models/bc"/>
+  <arg name="image_topic" default="/B1/rrbot/camera1/image_raw"/>
+  <arg name="cmd_vel_topic" default="/B1/cmd_vel"/>
+
+  <node pkg="controller_pkg" type="lane_follower_bc.py" name="lane_follower_bc" output="screen">
+    <param name="team" value="$(arg team)"/>
+    <param name="pass" value="$(arg pass)"/>
+    <param name="bc_dir" value="$(arg bc_dir)"/>
+    <param name="image_topic" value="$(arg image_topic)"/>
+    <param name="cmd_vel_topic" value="$(arg cmd_vel_topic)"/>
+    <param name="v_lin" value="0.22"/>
+    <param name="max_omega" value="1.0"/>
+    <param name="rate_hz" value="12.0"/>
+  </node>
+</launch>
