@@ -1,0 +1,7 @@
+<launch>
+  <node pkg="controller_pkg" type="recorder.py" name="il_recorder" output="screen">
+    <param name="image_topic" value="/B1/rrbot/camera1/image_raw"/>
+    <param name="twist_topic" value="/B1/cmd_vel"/>
+    <param name="target_hz" value="30.0"/>
+  </node>
+</launch>

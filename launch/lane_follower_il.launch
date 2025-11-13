@@ -1,0 +1,11 @@
+<launch>
+  <node pkg="controller_pkg" type="lane_follower_il.py" name="lane_follower_il" output="screen">
+    <param name="image_topic" value="/B1/rrbot/camera1/image_raw"/>
+    <param name="model_dir" value="$(env HOME)/il_data/run_20251112_213640/artifacts"/>
+    <param name="max_speed" value="0.9"/>
+    <param name="max_steer" value="0.8"/>
+    <param name="alpha_speed" value="0.3"/>
+    <param name="alpha_steer" value="0.5"/>
+    <param name="publish_hz" value="15.0"/>
+  </node>
+</launch>

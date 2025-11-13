@@ -14,7 +14,7 @@ catkin_package()
 
 catkin_install_python(PROGRAMS
         scripts/recorder.py
-        scripts/lane_follower_bc.py
+        scripts/lane_follower_il.py
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
