@@ -1,0 +1,18 @@
+# teleop_twist_joy:
+  # The topic the teleop node will publish to (this is overridden by the launch command)
+  cmd_vel: /cmd_vel
+
+  # Deadman button index
+  deadman_button: 4 # <YOUR_DEADMAN_INDEX>
+
+  # Linear velocity mapping (Forward/Backward)
+  axis_linear:
+    x: 1 # <YOUR_LINEAR_AXIS_INDEX>
+  scale_linear:
+    x: 0.8 # Adjust this maximum speed (m/s)
+
+  # Angular velocity mapping (Turning)
+  axis_angular:
+    yaw: 0 # <YOUR_ANGULAR_AXIS_INDEX>
+  scale_angular:
+    yaw: 2.5 # Adjust this maximum turn rate (rad/s)

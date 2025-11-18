@@ -10,7 +10,7 @@ import torch
 from torch import nn
 
 class PilotNet(nn.Module):
-    def __init__(self, out_dim=2):
+    def __init__(self, out_dim=1):
         super().__init__()
         self.conv = nn.Sequential(
             nn.Conv2d(3, 24, kernel_size=5, stride=2), nn.ELU(),
@@ -21,10 +21,12 @@ class PilotNet(nn.Module):
         )
         self.fc = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(64*1*18, 100), nn.ELU(),
+            nn.Linear(64*9*9,100), nn.ELU(),
+            # nn.Dropout(0.5), # <--- ADD THIS
             nn.Linear(100, 50), nn.ELU(),
+            # nn.Dropout(0.5), # <--- ADD THIS
             nn.Linear(50, 10), nn.ELU(),
-            nn.Linear(10, 2),
+            nn.Linear(10, out_dim),
         )
     def forward(self, x): return self.fc(self.conv(x))
 
@@ -55,11 +57,13 @@ class LaneFollowerIL:
         prep_path  = rospy.get_param("~prep_path",  os.path.join(model_dir, "preprocess.json"))
 
         # Limits & smoothing
-        self.max_speed   = float(rospy.get_param("~max_speed", 1.0))         # m/s clamp
-        self.max_steer   = float(rospy.get_param("~max_steer", 1.0))         # rad clamp
-        self.alpha_speed = float(rospy.get_param("~alpha_speed", 0.3))       # EMA for speed
-        self.alpha_steer = float(rospy.get_param("~alpha_steer", 0.5))       # EMA for steer
-        self.publish_hz  = float(rospy.get_param("~publish_hz", 15.0))
+        self.max_speed   = float(rospy.get_param("~max_speed", 0.3))         # m/s clamp
+        self.max_steer   = float(rospy.get_param("~max_steer", 2))         # rad clamp
+        self.alpha_speed = float(rospy.get_param("~alpha_speed", 0.5))       # EMA for speed
+        self.alpha_steer = float(rospy.get_param("~alpha_steer", 0.5)) # (inverse) how much robot remembers previous speed
+        self.steer_gain = float(rospy.get_param("~steer_gain", 1.0))
+        self.publish_hz  = float(rospy.get_param("~publish_hz", 30.0))
+
 
         # Load preprocess
         with open(prep_path, "r") as f:
@@ -67,7 +71,7 @@ class LaneFollowerIL:
 
         # Load model
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.model = PilotNet(out_dim=2).to(self.device)
+        self.model = PilotNet(out_dim=1).to(self.device)
         self.model.load_state_dict(torch.load(model_path, map_location=self.device))
         self.model.eval()
 
@@ -98,10 +102,11 @@ class LaneFollowerIL:
         x = torch.from_numpy(x).unsqueeze(0).to(self.device).float()  # <<< force float32
 
         with torch.no_grad():
-            yhat = self.model(x).cpu().numpy().reshape(-1)  # [2], [steer, speed]
+            yhat = self.model(x).cpu().numpy().reshape(-1)  # [1], [steer, speed]
         steer = float(np.clip(yhat[0], -self.max_steer, self.max_steer))
+        steer *= self.steer_gain
 
-        speed = float(np.clip(yhat[1], -self.max_speed, self.max_speed))
+        speed = self.max_speed
 
         # EMA smoothing
         self.last_cmd.linear.x  = (1-self.alpha_speed)*self.last_cmd.linear.x  + self.alpha_speed*speed

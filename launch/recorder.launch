@@ -2,6 +2,22 @@
   <node pkg="controller_pkg" type="recorder.py" name="il_recorder" output="screen">
     <param name="image_topic" value="/B1/rrbot/camera1/image_raw"/>
     <param name="twist_topic" value="/B1/cmd_vel"/>
-    <param name="target_hz" value="30.0"/>
+    <param name="target_hz" value="20.0"/>
+  </node>
+  <node pkg="rqt_robot_steering" type="rqt_robot_steering" name="robot_steering_ui" output="screen"/>
+
+  <arg name="deadzone" default="0.12" />
+  <arg name="joy_dev" default="/dev/input/js0" />
+  <arg name="config_file" default="$(env HOME)/ros_ws/src/controller_pkg/cfg/ps5_teleop.yaml"/>
+
+  <node pkg="joy" type="joy_node" name="joy_node" output="screen">
+    <param name="dev" value="$(arg joy_dev)" />
+    <param name="deadzone" value="$(arg deadzone)" />
+    <param name="autorepeat_rate" value="20.0" />
+  </node>
+
+  <node pkg="teleop_twist_joy" type="teleop_node" name="teleop_twist_joy" output="screen">
+    <rosparam command="load" file="$(arg config_file)" />
+    <remap from="cmd_vel" to="/B1/cmd_vel" />
   </node>
 </launch>

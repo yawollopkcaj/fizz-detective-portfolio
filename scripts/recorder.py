@@ -22,7 +22,7 @@ class Recorder:
         # ROS params (override in launch if needed)
         self.img_topic   = rospy.get_param("~image_topic", "/B1/rrbot/camera1/image_raw")
         self.twist_topic = rospy.get_param("~twist_topic", "/B1/cmd_vel")
-        self.target_hz   = float(rospy.get_param("~target_hz", 30.0)) # throttle image saves
+        self.target_hz   = float(rospy.get_param("~target_hz", 10.0)) # throttle image saves
         self.jpg_quality = int(rospy.get_param("~jpg_quality", 95))
 
         # Output directory
