@@ -74,7 +74,7 @@ class LaneFollowerIL:
         # Crosswalk and YOLO params
         self.red_pixel_thresh = 20000 # Thresh to trigger stop
         self.pedestrian_debounce = 0.5  # seconds
-        self.crosswalk_cooldown = 3.0  # seconds
+        self.crosswalk_cooldown = 5.0  # seconds
         self.time_since_last_seen = 0.0
         self.manual_override = False
 
@@ -246,7 +246,7 @@ class LaneFollowerIL:
 # Main entry point
 def main():
     rospy.init_node("lane_follower_il")
-    time.sleep(1.0) # Give ROS graph a moment to wire up
+    time.sleep(5.0) # Give ROS graph a moment to wire up
     LaneFollowerIL()
     rospy.loginfo("[il] Lane follower ready.")
     rospy.spin()

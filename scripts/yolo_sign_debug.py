@@ -11,24 +11,31 @@ import statistics
 import time
 from collections import Counter, defaultdict
 
-# Try to import Ultralytics
+# Try to import Ultralytics and Torch
 try:
     from ultralytics import YOLO
+    import torch
 except ImportError:
     pass 
 
 class SignReaderNode:
     def __init__(self):
+        # 1. INITIALIZE NODE with a unique name ensures no conflicts
         rospy.init_node('sign_reader_node', anonymous=True)
         
         # --- COMPETITION CONFIGURATION ---
         self.TEAM_ID = "TeamRed"      # REPLACE WITH YOUR TEAM ID
         self.TEAM_PASS = "multi21"    # REPLACE WITH YOUR PASSWORD
         
+        # --- HARDWARE SETTINGS ---
+        # Set to True if running 2 YOLO scripts crashes your GPU
+        self.USE_CPU = False 
+        self.device = 'cpu' if self.USE_CPU else '0'
+
         # --- PATH CONFIGURATION ---
         self.sign_model_path = "/home/fizzer/ros_ws/src/controller_pkg/weights/sign.pt" 
         self.char_model_path = "/home/fizzer/ros_ws/src/controller_pkg/weights/best_char.onnx"
-        self.topic_name = "/B1/rrbot/camera1/image_raw"
+        self.topic_name = "/B1/rrbot/camera_wide/image_raw"
         
         # Known Headers mapped to Score Tracker IDs (1-8)
         self.HEADER_TO_ID = {
@@ -51,8 +58,10 @@ class SignReaderNode:
 
         # --- OPTIMIZATION SETTINGS ---
         self.frame_count = 0
-        self.SKIP_FRAMES = 2  
+        self.SKIP_FRAMES = 1          
         self.prev_frame_time = 0 
+        self.last_char_inference = 0
+        self.CHAR_INFERENCE_RATE = 0.05
 
         # --- SETUP PUBLISHER ---
         self.score_pub = rospy.Publisher('/score_tracker', String, queue_size=10)
@@ -60,6 +69,20 @@ class SignReaderNode:
         # Load Models
         self.sign_model = self.load_model_safe(self.sign_model_path, "Sign")
         self.char_model = self.load_model_safe(self.char_model_path, "Character")
+
+        # --- WARMUP ROUTINE ---
+        if not self.USE_CPU:
+            print("🔥 Warming up GPU models... (This prevents lag later)")
+            try:
+                dummy_frame = np.zeros((640, 640, 3), dtype=np.uint8)
+                self.sign_model(dummy_frame, verbose=False, imgsz=320, device=self.device)
+                self.char_model(dummy_frame, verbose=False, imgsz=640, device=self.device)
+                print("✅ Models warmed up and ready!")
+            except Exception as e:
+                print(f"⚠️ Warmup failed (likely OOM): {e}")
+                print("⚠️ Switching to CPU mode to prevent crash.")
+                self.USE_CPU = True
+                self.device = 'cpu'
 
         self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber(self.topic_name, Image, self.image_callback)
@@ -92,6 +115,7 @@ class SignReaderNode:
 
         print(f"Loading {model_name}: {model_path}...")
         try:
+            # Force device selection
             return YOLO(model_path, task='detect')
         except Exception as e:
             rospy.logerr(f"Error loading model: {e}")
@@ -176,17 +200,11 @@ class SignReaderNode:
         return detected_header, content
 
     def flush_remaining_clues(self):
-        """
-        Called when BANDIT is found.
-        Iterates through all headers. If one is missing from submission but exists
-        in our observations, force submit the best guess.
-        """
         print("⚡ BANDIT FOUND! Flushing best guesses for missing clues...")
         for h in self.VALID_HEADERS:
             if h == "BANDIT": continue
             if h in self.submitted_facts: continue
 
-            # If we saw it at least once, submit it
             if self.knowledge_base[h]:
                 best_guess, count = self.knowledge_base[h].most_common(1)[0]
                 print(f"⚠️ FORCING SUBMISSION (Low Confidence): {h} -> {best_guess} (Seen {count} times)")
@@ -202,13 +220,9 @@ class SignReaderNode:
         if not header or not content:
             return
 
-        # 1. Update the counter
         self.knowledge_base[header][content] += 1
-        
-        # 2. Check the most common reading
         most_common_content, count = self.knowledge_base[header].most_common(1)[0]
         
-        # 3. Submit if threshold reached
         if count >= self.CONFIDENCE_THRESHOLD:
             if header not in self.submitted_facts:
                 print(f"✅ CONFIRMED: {header} -> {most_common_content}")
@@ -218,26 +232,30 @@ class SignReaderNode:
                     loc_id = self.HEADER_TO_ID[header]
                     self.publish_score(loc_id, most_common_content)
                     
-                    # --- END SIGNAL ---
                     if header == "BANDIT":
-                        # Attempt to fill in gaps before ending
                         self.flush_remaining_clues()
-                        
                         self.publish_score(-1, "END")
                         self.game_over = True
                         print("🏁 GAME OVER: All clues submitted.")
 
     def image_callback(self, data):
-        if self.game_over:
-            return
+        if self.game_over: return
 
         self.frame_count += 1
-        if self.frame_count % self.SKIP_FRAMES != 0:
-            return
+        if self.frame_count % self.SKIP_FRAMES != 0: return
 
         try:
             cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
-            self.process_frame(cv_image)
+            # Wrap the main processing in try/except to catch GPU OOM crashes
+            try:
+                self.process_frame(cv_image)
+            except RuntimeError as e:
+                if "out of memory" in str(e):
+                    print("⚠️ GPU OUT OF MEMORY! Skipping frame and clearing cache.")
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
+                else:
+                    print(f"⚠️ Runtime Error: {e}")
         except CvBridgeError as e:
             print(e)
 
@@ -250,22 +268,27 @@ class SignReaderNode:
         self.prev_frame_time = curr_time
         cv2.putText(vis_img, f"FPS: {fps:.1f}", (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
         
+        run_char_model = (curr_time - self.last_char_inference) > self.CHAR_INFERENCE_RATE
+        
         # 1. Sign Detection
-        sign_results = self.sign_model(img, verbose=False, conf=0.5, imgsz=320)
+        sign_results = self.sign_model(img, verbose=False, conf=0.5, imgsz=320, device=self.device)
         
         for r in sign_results:
             for box in r.boxes:
                 x1, y1, x2, y2 = map(int, box.xyxy[0])
                 
-                # Filter small signs
-                if (x2 - x1) < 100 or (y2 - y1) < 100:
+                if (x2 - x1) < 10 or (y2 - y1) < 10:
                     continue
+
+                cv2.rectangle(vis_img, (x1, y1), (x2, y2), (255, 0, 0), 2)
+
+                if not run_char_model: continue
 
                 sign_crop = img[y1:y2, x1:x2]
                 if sign_crop.size == 0: continue
 
                 # 2. Character Inference
-                char_results = self.char_model(sign_crop, verbose=False, conf=0.45, imgsz=640)
+                char_results = self.char_model(sign_crop, verbose=False, conf=0.45, imgsz=640, device=self.device)
                 char_detections = []
                 
                 for c_res in char_results:
@@ -295,11 +318,11 @@ class SignReaderNode:
                 
                 if header:
                     self.update_knowledge_base(header, content)
-                    cv2.rectangle(vis_img, (x1, y1), (x2, y2), (255, 0, 0), 2)
                     cv2.putText(vis_img, f"{header}: {content}", (x1, y1 - 10), 
                                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 0), 2)
-                else:
-                    cv2.rectangle(vis_img, (x1, y1), (x2, y2), (0, 0, 255), 2)
+        
+        if run_char_model:
+            self.last_char_inference = curr_time
 
         cv2.imshow("Robot View", vis_img)
         if cv2.waitKey(1) & 0xFF == ord('q'):
