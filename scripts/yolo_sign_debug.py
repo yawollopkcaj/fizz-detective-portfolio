@@ -8,6 +8,7 @@ from std_msgs.msg import String
 import sys
 import os
 import statistics
+import time
 from collections import Counter, defaultdict
 
 # Try to import Ultralytics
@@ -45,12 +46,13 @@ class SignReaderNode:
         # Data Aggregation
         self.knowledge_base = defaultdict(Counter)
         self.submitted_facts = set()
-        self.CONFIDENCE_THRESHOLD = 8
+        self.CONFIDENCE_THRESHOLD = 5
         self.game_over = False
 
         # --- OPTIMIZATION SETTINGS ---
         self.frame_count = 0
-        self.SKIP_FRAMES = 3  # Lowered slightly since inference is now faster
+        self.SKIP_FRAMES = 2  
+        self.prev_frame_time = 0 
 
         # --- SETUP PUBLISHER ---
         self.score_pub = rospy.Publisher('/score_tracker', String, queue_size=10)
@@ -173,10 +175,30 @@ class SignReaderNode:
 
         return detected_header, content
 
+    def flush_remaining_clues(self):
+        """
+        Called when BANDIT is found.
+        Iterates through all headers. If one is missing from submission but exists
+        in our observations, force submit the best guess.
+        """
+        print("⚡ BANDIT FOUND! Flushing best guesses for missing clues...")
+        for h in self.VALID_HEADERS:
+            if h == "BANDIT": continue
+            if h in self.submitted_facts: continue
+
+            # If we saw it at least once, submit it
+            if self.knowledge_base[h]:
+                best_guess, count = self.knowledge_base[h].most_common(1)[0]
+                print(f"⚠️ FORCING SUBMISSION (Low Confidence): {h} -> {best_guess} (Seen {count} times)")
+                
+                if h in self.HEADER_TO_ID:
+                    loc_id = self.HEADER_TO_ID[h]
+                    self.publish_score(loc_id, best_guess)
+                    self.submitted_facts.add(h)
+            else:
+                print(f"❌ NO DATA FOR: {h} (Cannot guess)")
+
     def update_knowledge_base(self, header, content):
-        """
-        Aggregates readings, checks threshold, and publishes to Score Tracker.
-        """
         if not header or not content:
             return
 
@@ -192,23 +214,23 @@ class SignReaderNode:
                 print(f"✅ CONFIRMED: {header} -> {most_common_content}")
                 self.submitted_facts.add(header)
                 
-                # Retrieve ID and Publish
                 if header in self.HEADER_TO_ID:
                     loc_id = self.HEADER_TO_ID[header]
                     self.publish_score(loc_id, most_common_content)
                     
                     # --- END SIGNAL ---
                     if header == "BANDIT":
+                        # Attempt to fill in gaps before ending
+                        self.flush_remaining_clues()
+                        
                         self.publish_score(-1, "END")
                         self.game_over = True
                         print("🏁 GAME OVER: All clues submitted.")
 
     def image_callback(self, data):
-        # OPTIMIZATION: Early Exit if Game Over
         if self.game_over:
             return
 
-        # OPTIMIZATION: Frame Skipping
         self.frame_count += 1
         if self.frame_count % self.SKIP_FRAMES != 0:
             return
@@ -222,27 +244,27 @@ class SignReaderNode:
     def process_frame(self, img):
         vis_img = img.copy()
         
-        # OPTIMIZATION 1: Reduced Inference Size (imgsz=320)
-        # Standard YOLO runs at 640x640. Dropping to 320x320 makes it ~4x faster on CPU
-        # at the cost of not detecting tiny, distant signs (which we can't read yet anyway).
-        # Safe for .pt files (Sign model).
+        # FPS Calc
+        curr_time = time.time()
+        fps = 1 / (curr_time - self.prev_frame_time) if self.prev_frame_time > 0 else 0
+        self.prev_frame_time = curr_time
+        cv2.putText(vis_img, f"FPS: {fps:.1f}", (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
+        
+        # 1. Sign Detection
         sign_results = self.sign_model(img, verbose=False, conf=0.5, imgsz=320)
         
         for r in sign_results:
             for box in r.boxes:
                 x1, y1, x2, y2 = map(int, box.xyxy[0])
                 
-                # OPTIMIZATION 2: Filter Small Signs
-                # If the sign is smaller than 75x75 pixels, it's too far to read characters.
-                if (x2 - x1) < 75 or (y2 - y1) < 75:
+                # Filter small signs
+                if (x2 - x1) < 100 or (y2 - y1) < 100:
                     continue
 
                 sign_crop = img[y1:y2, x1:x2]
                 if sign_crop.size == 0: continue
 
-                # OPTIMIZATION 3: Character Inference
-                # NOTE: We MUST use imgsz=640 because the ONNX model was exported with a fixed input size.
-                # Using 224 causes a dimension mismatch error in ONNX Runtime.
+                # 2. Character Inference
                 char_results = self.char_model(sign_crop, verbose=False, conf=0.45, imgsz=640)
                 char_detections = []
                 
@@ -268,18 +290,15 @@ class SignReaderNode:
                             ox2, oy2 = cx2 + x1, cy2 + y1
                             cv2.rectangle(vis_img, (ox1, oy1), (ox2, oy2), (0, 255, 0), 1)
 
-                # Form Word & Aggregate
+                # 3. Process Text
                 header, content = self.sort_characters(char_detections)
                 
                 if header:
                     self.update_knowledge_base(header, content)
-                    
-                    # Blue Box for Header Found
                     cv2.rectangle(vis_img, (x1, y1), (x2, y2), (255, 0, 0), 2)
                     cv2.putText(vis_img, f"{header}: {content}", (x1, y1 - 10), 
                                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 0), 2)
                 else:
-                    # Red Box for No Header
                     cv2.rectangle(vis_img, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
         cv2.imshow("Robot View", vis_img)

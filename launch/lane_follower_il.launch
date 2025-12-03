@@ -2,12 +2,12 @@
   <node pkg="controller_pkg" type="lane_follower_il.py" name="lane_follower_il" output="screen">
     <param name="image_topic" value="/B1/rrbot/camera1/image_raw"/>
     <param name="model_dir" value="$(env HOME)/il_training/models/6000_MAX_BIN"/>
-    <param name="max_speed" value="1.2"/>
+    <param name="max_speed" value="0.6"/>
     <param name="max_steer" value="100"/>
     <param name="alpha_speed" value="1"/>
     <param name="alpha_steer" value="1"/>
-    <param name="steer_gain" value="2"/>
-    <param name="publish_hz" value="120.0"/>
+    <param name="steer_gain" value="1"/>
+    <param name="publish_hz" value="60.0"/>
     <param name="yolo_model_path" value="$(env HOME)/ros_ws/src/controller_pkg/weights/crosswalk_v2.pt"/>
   </node>
 </launch>
