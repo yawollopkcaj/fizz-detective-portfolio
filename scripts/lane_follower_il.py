@@ -187,7 +187,7 @@ class LaneFollowerIL:
             rospy.logwarn(f"[il] CvBridge error: {e}")
             return
         
-        debug_img = cv_img.copy()
+        debug_img = cv2.resize(cv_img, (200, 200))
 
         # Display the window so 'p' works BEFORE STARTING TO LINE FOLLOW
         try:
