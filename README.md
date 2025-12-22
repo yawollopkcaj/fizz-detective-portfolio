@@ -1,6 +1,8 @@
 # Fizz Detective: Autonomous Robot (ROS & Imitation Learning)
 
-![Robot Demo](media/output_fast.gif)
+<p align="center">
+  <img src="media/output_fast.gif" width="600" />
+</p>
 
 ## Project Overview
 **Fizz Detective** is an autonomous robot software stack developed for the ENPH 353 competition. The objective was to navigate a simulated urban environment in **Gazebo**, adhering to traffic laws while identifying and reading alphanumeric "clue plates" to solve a puzzle.
