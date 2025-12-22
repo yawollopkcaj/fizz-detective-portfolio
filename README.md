@@ -57,21 +57,14 @@ We adapted the NVIDIA PilotNet architecture (5 convolutional layers, 3 fully con
 <caption><b>Figure 3: Optical Character Recognition (OCR) Demo</b></caption>
 </p>
 <p align="center">
-  <img src="media/ocr_demo.png" width="400" />
+  <img src="media/ocr_demo.png" width="600" />
 </p>
 
 <p align="center">
-<caption><b>Figure 4: OCR Confusion Matrix</b></caption>
+<caption><b>Figure 4: OCR Network Architecture</b></caption>
 </p>
 <p align="center">
-  <img src="media/ocr_confusion.png" width="400" />
-</p>
-
-<p align="center">
-<caption><b>Figure 5: OCR Training/Validation Accuracy</b></caption>
-</p>
-<p align="center">
-  <img src="media/ocr_chart.png" width="400" />
+  <img src="media/ocr_network.png" width="600" />
 </p>
 
 ## Key Technical Challenges
@@ -85,6 +78,23 @@ We adapted the NVIDIA PilotNet architecture (5 convolutional layers, 3 fully con
 **Problem:** At medium distances, our HSV thresholding filter caused characters on the clue boards (like "SIZE") to bleed together into a single blob, causing the CNN to fail.
 
 **Solution:** We implemented a morphological preprocessing pipeline. We applied **erosion** to separate the connected white pixels of the characters, then calculated bounding boxes, and finally applied **dilation** to restore the character shapes before feeding them into the classification network.
+
+## Appendix: Training Metrics (Character Recognition)
+To ensure robust OCR performance on the low-fidelity Gazebo textures, we tracked the training stability of our custom CNN. The model converged after approximately 10 epochs, achieving near-perfect validation accuracy on the synthetic dataset.
+
+<p align="center">
+<caption><b>Figure 5: OCR Confusion Matrix</b></caption>
+</p>
+<p align="center">
+  <img src="media/ocr_confusion.png" width="600" />
+</p>
+
+<p align="center">
+<caption><b>Figure 6: OCR Training/Validation Accuracy</b></caption>
+</p>
+<p align="center">
+  <img src="media/ocr_chart.png" width="600" />
+</p>
 
 ## Authors
 * **Jack Polloway:** Driving Policy (IL), PilotNet Architecture, System Integration.
