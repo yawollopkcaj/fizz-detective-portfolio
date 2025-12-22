@@ -58,7 +58,7 @@ We adapted the NVIDIA PilotNet architecture (5 convolutional layers, 3 fully con
 <caption><b>Figure 2: Immitation Learning (IL) Network Architecture</b></caption>
 </p>
 <p align="center">
-  <img src="media/il_network" width="600" />
+  <img src="media/il_network.png" width="600" />
 </p>
 
 ### Character Recognition
