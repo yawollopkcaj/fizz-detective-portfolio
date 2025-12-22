@@ -27,8 +27,9 @@ The robot uses a dual-camera setup to balance inference speed with detection ran
 | **Decision Making** | **Finite State Machine** | Toggles perception nodes (e.g., disabling pedestrian detection while driving) to save GPU resources. |
 | **OCR Pipeline** | **OpenCV + CNN** | Custom morphological pipeline (erode/dilate) to segment and read characters. |
 
-
-![System Diagram](media/ENPH-353-Software-Architecture.png)
+<p align="center">
+  <img src="media/ENPH-353-Software-Architecture.png" width="600" />
+</p>
 
 ## Key Technical Challenges
 
