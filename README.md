@@ -59,7 +59,7 @@ We adapted the NVIDIA PilotNet architecture (5 convolutional layers, 3 fully con
 * **Loss:** Converged after ~10 epochs using Adam optimizer.
 
 <p align="center">
-  <strong>Figure 13: Training Loss</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <strong>Figure 14: Validation Accuracy</strong><br>
+  <strong>Figure 13: Training Loss</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <strong>Figure 14: Validation Accuracy</strong><br>
   <img src="media/loss_plot.png" width="45%" />
   <img src="media/acc_plot.png" width="45%" />
 </p>
