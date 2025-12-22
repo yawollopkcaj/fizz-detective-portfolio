@@ -54,7 +54,7 @@ We adapted the NVIDIA PilotNet architecture (5 convolutional layers, 3 fully con
 * **Loss:** Converged after ~10 epochs using Adam optimizer.
 
 <p align="center">
-<caption><b>Figure 3: OCR Demo</b></caption>
+<caption><b>Figure 3: Optical Character Recognition (OCR) Demo</b></caption>
 </p>
 <p align="center">
   <img src="media/ocr_demo.png" width="400" />
