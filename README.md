@@ -28,7 +28,7 @@ The robot uses a dual-camera setup to balance inference speed with detection ran
 | **OCR Pipeline** | **OpenCV + CNN** | Custom morphological pipeline (erode/dilate) to segment and read characters. |
 
 
-![System Diagram](media/system_diagram.png)
+![System Diagram](media/ENPH-353-Software-Architecture.png)
 
 ## Key Technical Challenges
 
