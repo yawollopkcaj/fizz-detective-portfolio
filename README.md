@@ -58,6 +58,12 @@ We adapted the NVIDIA PilotNet architecture (5 convolutional layers, 3 fully con
 * **Training:** Synthetic data generation using affine transformations and Gaussian noise to match the low-fidelity Gazebo textures.
 * **Loss:** Converged after ~10 epochs using Adam optimizer.
 
+<p align="center">
+  <strong>Figure 13: Training Loss</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <strong>Figure 14: Validation Accuracy</strong><br>
+  <img src="media/loss_plot.png" width="45%" />
+  <img src="media/acc_plot.png" width="45%" />
+</p>
+
 | **Figure 3: Training & Validation Loss** | **Figure 4: Accuracy vs Epoch** |
 |:---:|:---:|
 | <img src="media/ocr_chart.png" width="100%"> | <img src="media/ocr_confusion.png" width="100%"> |
