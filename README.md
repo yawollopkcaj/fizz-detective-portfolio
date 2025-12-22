@@ -13,9 +13,9 @@
 
 ## Source Code (Modular Architecture)
 This project is split into three decoupled repositories to ensure modularity. 
-* 🎮 **[fizz-control](LINK_TO_CONTROL_REPO):** Main ROS package, Finite State Machine, and Launch files.
-* 🧠 **[fizz-pilotnet](LINK_TO_DRIVER_REPO):** PyTorch implementation of the PilotNet Imitation Learning model.
-* 👁️ **[fizz-ocr](LINK_TO_OCR_REPO):** YOLOv5 training pipeline and character generation scripts.
+* **[control](https://github.com/yawollopkcaj/fizz-detective-portfolio):** Main ROS package, Finite State Machine, and Launch files.
+* **[il-training](https://github.com/yawollopkcaj/fizz-detective-il-training):** PyTorch implementation of the PilotNet Imitation Learning model.
+* **[ocr-training](https://github.com/yawollopkcaj/fizz-detective-ocr-training):** YOLOv5 training pipeline and character generation scripts.
 
 ## System Architecture
 [cite_start]The robot uses a dual-camera setup to balance inference speed with detection range[cite: 21]:
