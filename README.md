@@ -62,7 +62,7 @@ We adapted the NVIDIA PilotNet architecture (5 convolutional layers, 3 fully con
 <caption><b>Figure 2: OCR Demo</b></caption>
 </p>
 <p align="center">
-  <img src="media/ocr_implementation.png" width="400" />
+  <img src="media/ocr_demo.png" width="400" />
 </p>
 
 <p align="center">
