@@ -41,7 +41,7 @@ The robot uses a dual-camera setup to balance inference speed with detection ran
 **Solution:** We implemented a morphological preprocessing pipeline. [cite_start]We applied **erosion** to separate the connected white pixels of the characters, then calculated bounding boxes, and finally applied **dilation** to restore the character shapes before feeding them into the classification network[cite: 247, 248].
 
 <p align="center">
-  <img src="media/fat_letter.png" width="400" />
+  <img src="media/fat_letters.png" width="400" />
 </p>
 
 ### 2. Sim-to-Real Latency (RTF Variance)
