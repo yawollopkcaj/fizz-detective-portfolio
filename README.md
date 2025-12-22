@@ -30,7 +30,11 @@ The robot uses a dual-camera setup to balance inference speed with detection ran
 | **OCR Pipeline** | **OpenCV + CNN** | Custom morphological pipeline (erode/dilate) to segment and read characters. |
 
 <p align="center">
-  <img src="media/ENPH-353-Software-Architecture.png" width="600" />
+<caption><b>Figure 1: Software Architecture Diagram</b></caption>
+</p>
+
+<p align="center">
+  <img src="media/ENPH-353-Software-Architecture.png" width="400" />
 </p>
 
 ## Key Technical Challenges
@@ -40,6 +44,9 @@ The robot uses a dual-camera setup to balance inference speed with detection ran
 
 **Solution:** We implemented a morphological preprocessing pipeline. We applied **erosion** to separate the connected white pixels of the characters, then calculated bounding boxes, and finally applied **dilation** to restore the character shapes before feeding them into the classification network.
 
+<p align="center">
+<caption><b>Figure 2: Clueboard Letters Becoming “Fat” After Blue Mask</b></caption>
+</p>
 <p align="center">
   <img src="media/fat_letters.png" width="400" />
 </p>
@@ -59,15 +66,17 @@ We adapted the NVIDIA PilotNet architecture (5 convolutional layers, 3 fully con
 * **Loss:** Converged after ~10 epochs using Adam optimizer.
 
 <p align="center">
-<caption><b>Figure 1: OCR Confusion Matrix</b></caption>
+<caption><b>Figure 3: OCR Confusion Matrix</b></caption>
+</p>
+<p align="center">
+  <img src="media/ocr_confusion.png" width="400" />
 </p>
 
 <p align="center">
-  <img src="media/ocr_confusion.png" width="600" />
+<caption><b>Figure 4: OCR Training/Validation Accuracy</b></caption>
 </p>
-
 <p align="center">
-  <img src="media/ocr_chart.png" width="600" />
+  <img src="media/ocr_chart.png" width="400" />
 </p>
 
 ## Authors
