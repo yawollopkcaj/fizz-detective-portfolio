@@ -54,7 +54,7 @@ We adapted the NVIDIA PilotNet architecture (5 convolutional layers, 3 fully con
 * [cite_start]**Loss:** Converged after ~10 epochs using Adam optimizer[cite: 129].
 
 
-![Training Loss|400](media/ocr_training.png)
+![Training Loss](media/ocr_training.png)
 
 ## Authors
 * [cite_start]**Jack Polloway:** Driving Policy (IL), PilotNet Architecture, System Integration[cite: 12].
