@@ -1,6 +1,9 @@
 # Fizz Detective: Autonomous Robot (ROS & Imitation Learning)
 
 <p align="center">
+<caption><b>Full Competition Run (10x Speed)</b></caption>
+</p>
+<p align="center">
   <img src="media/output_fast.gif" width="600" />
 </p>
 
