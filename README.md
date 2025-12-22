@@ -101,4 +101,4 @@ To ensure robust OCR performance on the low-fidelity Gazebo textures, we tracked
 </p>
 
 ---
-*Created for UBC Engineering Physics 353 (2025).*
+*Created for UBC Engineering Physics Course ENPH 353 (2025).*
