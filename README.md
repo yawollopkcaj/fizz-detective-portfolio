@@ -1,4 +1,4 @@
-# Fizz Detective: Autonomous Mobile Robot (ROS & Imitation Learning)
+# Fizz Detective: Autonomous Robot (ROS & Imitation Learning)
 
 ![Robot Demo](media/output_fast.gif)
 
