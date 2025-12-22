@@ -59,17 +59,14 @@ We adapted the NVIDIA PilotNet architecture (5 convolutional layers, 3 fully con
 * **Loss:** Converged after ~10 epochs using Adam optimizer.
 
 <p align="center">
-  <strong>Figure 13: Training Loss</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <strong>Figure 14: Validation Accuracy</strong><br>
-  <img src="media/loss_plot.png" width="45%" />
-  <img src="media/acc_plot.png" width="45%" />
+<caption><b>Figure 2: OCR Demo</b></caption>
+</p>
+<p align="center">
+  <img src="media/ocr_implementation.png" width="400" />
 </p>
 
-| **Figure 3: Training & Validation Loss** | **Figure 4: Accuracy vs Epoch** |
-|:---:|:---:|
-| <img src="media/ocr_chart.png" width="100%"> | <img src="media/ocr_confusion.png" width="100%"> |
-
 <p align="center">
-<caption><b>Figure 3: OCR Neural Network Architecture</b></caption>
+<caption><b>Figure 2: OCR Neural Network Architecture</b></caption>
 </p>
 <p align="center">
   <img src="media/ocr_network.png" width="400" />
@@ -88,6 +85,8 @@ We adapted the NVIDIA PilotNet architecture (5 convolutional layers, 3 fully con
 <p align="center">
   <img src="media/ocr_chart.png" width="400" />
 </p>
+
+
 
 ## Authors
 * **Jack Polloway:** Driving Policy (IL), PilotNet Architecture, System Integration.
