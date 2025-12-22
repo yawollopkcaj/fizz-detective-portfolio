@@ -36,36 +36,39 @@ The robot uses a dual-camera setup to balance inference speed with detection ran
 ## Key Technical Challenges
 
 ### 1. The "Fat Letter" Problem (Computer Vision)
-[cite_start]**Problem:** At medium distances, our HSV thresholding filter caused characters on the clue boards (like "SIZE") to bleed together into a single blob, causing the CNN to fail[cite: 239, 244].
+**Problem:** At medium distances, our HSV thresholding filter caused characters on the clue boards (like "SIZE") to bleed together into a single blob, causing the CNN to fail.
 
-**Solution:** We implemented a morphological preprocessing pipeline. [cite_start]We applied **erosion** to separate the connected white pixels of the characters, then calculated bounding boxes, and finally applied **dilation** to restore the character shapes before feeding them into the classification network[cite: 247, 248].
+**Solution:** We implemented a morphological preprocessing pipeline. We applied **erosion** to separate the connected white pixels of the characters, then calculated bounding boxes, and finally applied **dilation** to restore the character shapes before feeding them into the classification network.
 
 <p align="center">
   <img src="media/fat_letters.png" width="400" />
 </p>
 
 ### 2. Sim-to-Real Latency (RTF Variance)
-**Problem:** The Imitation Learning model was trained on a local machine with a Real-Time Factor (RTF) of ~0.9. [cite_start]However, the competition server ran at ~0.55 RTF due to overhead, causing the robot to oversteer and oscillate[cite: 153, 298].
+**Problem:** The Imitation Learning model was trained on a local machine with a Real-Time Factor (RTF) of ~0.9. However, the competition server ran at ~0.55 RTF due to overhead, causing the robot to oversteer and oscillate.
 
-**Solution:** To mitigate this, we implemented a **Recovery Strategy** in our training data. [cite_start]We deliberately recorded "recovery maneuvers" (driving off-center and correcting sharply) to teach the model how to handle state-drift caused by lag[cite: 74].
+**Solution:** To mitigate this, we implemented a **Recovery Strategy** in our training data. We deliberately recorded "recovery maneuvers" (driving off-center and correcting sharply) to teach the model how to handle state-drift caused by lag.
 
 ## Neural Network Details
 ### PilotNet (Driving Policy)
 We adapted the NVIDIA PilotNet architecture (5 convolutional layers, 3 fully connected).
-* **Modification:** We strictly **removed Dropout layers**. [cite_start]While dropout usually prevents overfitting, we found that for this specific dirt-road terrain, "overfitting" to specific ground textures actually improved performance where lane lines were missing[cite: 96, 98, 99].
+* **Modification:** We strictly **removed Dropout layers**. While dropout usually prevents overfitting, we found that for this specific dirt-road terrain, "overfitting" to specific ground textures actually improved performance where lane lines were missing.
 
 ### Character Recognition
-* [cite_start]**Training:** Synthetic data generation using affine transformations and Gaussian noise to match the low-fidelity Gazebo textures[cite: 196, 261].
-* [cite_start]**Loss:** Converged after ~10 epochs using Adam optimizer[cite: 129].
-
+* **Training:** Synthetic data generation using affine transformations and Gaussian noise to match the low-fidelity Gazebo textures.
+* **Loss:** Converged after ~10 epochs using Adam optimizer.
+  
+<p align="center">
+  <img src="media/ocr_confusion.png" width="600" />
+</p>
 
 <p align="center">
   <img src="media/ocr_chart.png" width="600" />
 </p>
 
 ## Authors
-* [cite_start]**Jack Polloway:** Driving Policy (IL), PilotNet Architecture, System Integration[cite: 12].
-* [cite_start]**Ryan Mahinpey:** OCR Pipeline, YOLOv5 Implementation[cite: 14].
+* **Jack Polloway:** Driving Policy (IL), PilotNet Architecture, System Integration.
+* **Ryan Mahinpey:** OCR Pipeline, YOLOv5 Implementation.
 
 ---
 *Created for UBC Engineering Physics 353 (2025).*
