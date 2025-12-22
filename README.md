@@ -3,13 +3,13 @@
 ![Robot Demo](media/demo_drive.gif)
 
 ## Project Overview
-**Fizz Detective** is an autonomous robot software stack developed for the ENPH 353 competition. [cite_start]The objective was to navigate a simulated urban environment in **Gazebo**, adhering to traffic laws while identifying and reading alphanumeric "clue plates" to solve a puzzle[cite: 7, 8, 9].
+**Fizz Detective** is an autonomous robot software stack developed for the ENPH 353 competition. The objective was to navigate a simulated urban environment in **Gazebo**, adhering to traffic laws while identifying and reading alphanumeric "clue plates" to solve a puzzle.
 
-[cite_start]The system utilizes a **Hybrid Control Architecture**, decoupling high-level decision-making (Finite State Machine) from low-level perception (End-to-End Imitation Learning) to optimize for the simulation's Real-Time Factor (RTF)[cite: 17, 20].
+The system utilizes a **Hybrid Control Architecture**, decoupling high-level decision-making (Finite State Machine) from low-level perception (End-to-End Imitation Learning) to optimize for the simulation's Real-Time Factor (RTF).
 
 ### Performance
-* [cite_start]**Lap Time:** 2m 20s (0.8 m/s constant linear velocity)[cite: 150].
-* [cite_start]**Capabilities:** Lane following on unlined dirt roads, dynamic obstacle avoidance (pedestrians/trucks), and OCR character recognition[cite: 8, 59].
+* **Lap Time:** 2m 20s (0.8 m/s constant linear velocity).
+* **Capabilities:** Lane following on unlined dirt roads, dynamic obstacle avoidance (pedestrians/trucks), and OCR character recognition.
 
 ## Source Code (Modular Architecture)
 This project is split into three decoupled repositories to ensure modularity. 
@@ -18,14 +18,14 @@ This project is split into three decoupled repositories to ensure modularity.
 * **[ocr-training](https://github.com/yawollopkcaj/fizz-detective-ocr-training):** YOLOv5 training pipeline and character generation scripts.
 
 ## System Architecture
-[cite_start]The robot uses a dual-camera setup to balance inference speed with detection range[cite: 21]:
+The robot uses a dual-camera setup to balance inference speed with detection range:
 
 | Component | Technology | Description |
 | :--- | :--- | :--- |
-| **Lane Following** | **PilotNet (PyTorch)** | [cite_start]End-to-End Imitation Learning CNN processing 800x800 images (resized to 128x128)[cite: 23, 89]. |
-| **Object Detection** | **YOLOv5** | [cite_start]Detects "Clue Boards" and Pedestrians using a dedicated 4K wide-angle stream[cite: 30, 143]. |
-| **Decision Making** | **Finite State Machine** | [cite_start]Toggles perception nodes (e.g., disabling pedestrian detection while driving) to save GPU resources[cite: 32, 34]. |
-| **OCR Pipeline** | **OpenCV + CNN** | [cite_start]Custom morphological pipeline (erode/dilate) to segment and read characters[cite: 247]. |
+| **Lane Following** | **PilotNet (PyTorch)** | End-to-End Imitation Learning CNN processing 800x800 images (resized to 128x128). |
+| **Object Detection** | **YOLOv5** | Detects "Clue Boards" and Pedestrians using a dedicated 4K wide-angle stream. |
+| **Decision Making** | **Finite State Machine** | Toggles perception nodes (e.g., disabling pedestrian detection while driving) to save GPU resources. |
+| **OCR Pipeline** | **OpenCV + CNN** | Custom morphological pipeline (erode/dilate) to segment and read characters. |
 
 
 ![System Diagram](media/system_diagram.png)
