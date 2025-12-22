@@ -66,6 +66,21 @@ We adapted the NVIDIA PilotNet architecture (5 convolutional layers, 3 fully con
   <img src="media/ocr_chart.png" width="600" />
 </p>
 
+<table>
+  <tr>
+    <td align="center">
+      <img src="media/ocr_confusion.png" width="400" />
+      <br />
+      <caption><b>Figure 1: Training Loss</b></caption>
+    </td>
+    <td align="center">
+      <img src="media/ocr_chart.png" width="400" />
+      <br />
+      <caption><b>Figure 2: Validation Accuracy</b></caption>
+    </td>
+  </tr>
+</table>
+
 ## Authors
 * **Jack Polloway:** Driving Policy (IL), PilotNet Architecture, System Integration.
 * **Ryan Mahinpey:** OCR Pipeline, YOLOv5 Implementation.
