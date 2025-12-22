@@ -54,6 +54,37 @@ The robot uses a dual-camera setup to balance inference speed with detection ran
 We adapted the NVIDIA PilotNet architecture (5 convolutional layers, 3 fully connected).
 * **Modification:** We strictly **removed Dropout layers**. While dropout usually prevents overfitting, we found that for this specific dirt-road terrain, "overfitting" to specific ground textures actually improved performance where lane lines were missing.
 
+==========================================================================================
+Layer (type:depth-idx)                   Output Shape              Param #
+==========================================================================================
+PilotNet                                 [1, 1]                    --
+├─Sequential: 1-1                        [1, 64, 9, 9]             --
+│    └─Conv2d: 2-1                       [1, 24, 62, 62]           1,824
+│    └─ELU: 2-2                          [1, 24, 62, 62]           --
+│    └─Conv2d: 2-3                       [1, 36, 29, 29]           21,636
+│    └─ELU: 2-4                          [1, 36, 29, 29]           --
+│    └─Conv2d: 2-5                       [1, 48, 13, 13]           43,248
+│    └─ELU: 2-6                          [1, 48, 13, 13]           --
+│    └─Conv2d: 2-7                       [1, 64, 11, 11]           27,712
+│    └─ELU: 2-8                          [1, 64, 11, 11]           --
+│    └─Conv2d: 2-9                       [1, 64, 9, 9]             36,928
+│    └─ELU: 2-10                         [1, 64, 9, 9]             --
+├─Sequential: 1-2                        [1, 1]                    --
+│    └─Flatten: 2-11                     [1, 5184]                 --
+│    └─Linear: 2-12                      [1, 100]                  518,500
+│    └─ELU: 2-13                         [1, 100]                  --
+│    └─Linear: 2-14                      [1, 50]                   5,050
+│    └─ELU: 2-15                         [1, 50]                   --
+│    └─Linear: 2-16                      [1, 10]                   510
+│    └─ELU: 2-17                         [1, 10]                   --
+│    └─Linear: 2-18                      [1, 1]                    11
+==========================================================================================
+Total params: 655,419
+Trainable params: 655,419
+Non-trainable params: 0
+Total mult-adds (M): 28.53
+==========================================================================================
+
 ### Character Recognition
 * **Training:** Synthetic data generation using affine transformations and Gaussian noise to match the low-fidelity Gazebo textures.
 * **Loss:** Converged after ~10 epochs using Adam optimizer.
