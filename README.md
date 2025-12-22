@@ -58,7 +58,9 @@ We adapted the NVIDIA PilotNet architecture (5 convolutional layers, 3 fully con
 * **Training:** Synthetic data generation using affine transformations and Gaussian noise to match the low-fidelity Gazebo textures.
 * **Loss:** Converged after ~10 epochs using Adam optimizer.
 
-<caption><b>Figure 1: Training Loss</b></caption>
+<p align="center">
+<caption><b>Figure 1: OCR Confusion Matrix</b></caption>
+</p>
 
 <p align="center">
   <img src="media/ocr_confusion.png" width="600" />
