@@ -37,18 +37,6 @@ The robot uses a dual-camera setup to balance inference speed with detection ran
   <img src="media/ENPH-353-Software-Architecture.png" width="600" />
 </p>
 
-## Key Technical Challenges
-
-### 1. Sim-to-Real Latency (RTF Variance)
-**Problem:** The Imitation Learning model was trained on a local machine with a Real-Time Factor (RTF) of ~0.9. However, the competition server ran at ~0.55 RTF due to overhead, causing the robot to oversteer and oscillate.
-
-**Solution:** To mitigate this, we implemented a **Recovery Strategy** in our training data. We deliberately recorded "recovery maneuvers" (driving off-center and correcting sharply) to teach the model how to handle state-drift caused by lag.
-
-### 2. The "Fat Letter" Problem (Computer Vision)
-**Problem:** At medium distances, our HSV thresholding filter caused characters on the clue boards (like "SIZE") to bleed together into a single blob, causing the CNN to fail.
-
-**Solution:** We implemented a morphological preprocessing pipeline. We applied **erosion** to separate the connected white pixels of the characters, then calculated bounding boxes, and finally applied **dilation** to restore the character shapes before feeding them into the classification network.
-
 ## Neural Network Details
 ### PilotNet (Driving Policy)
 We adapted the NVIDIA PilotNet architecture (5 convolutional layers, 3 fully connected).
@@ -66,34 +54,37 @@ We adapted the NVIDIA PilotNet architecture (5 convolutional layers, 3 fully con
 * **Loss:** Converged after ~10 epochs using Adam optimizer.
 
 <p align="center">
-<caption><b>Figure 2: OCR Demo</b></caption>
+<caption><b>Figure 3: OCR Demo</b></caption>
 </p>
 <p align="center">
   <img src="media/ocr_demo.png" width="400" />
 </p>
 
 <p align="center">
-<caption><b>Figure 2: OCR Neural Network Architecture</b></caption>
-</p>
-<p align="center">
-  <img src="media/ocr_network.png" width="400" />
-</p>
-
-<p align="center">
-<caption><b>Figure 3: OCR Confusion Matrix</b></caption>
+<caption><b>Figure 4: OCR Confusion Matrix</b></caption>
 </p>
 <p align="center">
   <img src="media/ocr_confusion.png" width="400" />
 </p>
 
 <p align="center">
-<caption><b>Figure 4: OCR Training/Validation Accuracy</b></caption>
+<caption><b>Figure 5: OCR Training/Validation Accuracy</b></caption>
 </p>
 <p align="center">
   <img src="media/ocr_chart.png" width="400" />
 </p>
 
+## Key Technical Challenges
 
+### 1. Sim-to-Real Latency (RTF Variance)
+**Problem:** The Imitation Learning model was trained on a local machine with a Real-Time Factor (RTF) of ~0.9. However, the competition server ran at ~0.55 RTF due to overhead, causing the robot to oversteer and oscillate.
+
+**Solution:** To mitigate this, we implemented a **Recovery Strategy** in our training data. We deliberately recorded "recovery maneuvers" (driving off-center and correcting sharply) to teach the model how to handle state-drift caused by lag.
+
+### 2. The "Fat Letter" Problem (Computer Vision)
+**Problem:** At medium distances, our HSV thresholding filter caused characters on the clue boards (like "SIZE") to bleed together into a single blob, causing the CNN to fail.
+
+**Solution:** We implemented a morphological preprocessing pipeline. We applied **erosion** to separate the connected white pixels of the characters, then calculated bounding boxes, and finally applied **dilation** to restore the character shapes before feeding them into the classification network.
 
 ## Authors
 * **Jack Polloway:** Driving Policy (IL), PilotNet Architecture, System Integration.
