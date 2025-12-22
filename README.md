@@ -44,13 +44,6 @@ The robot uses a dual-camera setup to balance inference speed with detection ran
 
 **Solution:** We implemented a morphological preprocessing pipeline. We applied **erosion** to separate the connected white pixels of the characters, then calculated bounding boxes, and finally applied **dilation** to restore the character shapes before feeding them into the classification network.
 
-<p align="center">
-<caption><b>Figure 2: Clueboard Letters Becoming “Fat” After Blue Mask</b></caption>
-</p>
-<p align="center">
-  <img src="media/fat_letters.png" width="400" />
-</p>
-
 ### 2. Sim-to-Real Latency (RTF Variance)
 **Problem:** The Imitation Learning model was trained on a local machine with a Real-Time Factor (RTF) of ~0.9. However, the competition server ran at ~0.55 RTF due to overhead, causing the robot to oversteer and oscillate.
 
@@ -64,6 +57,13 @@ We adapted the NVIDIA PilotNet architecture (5 convolutional layers, 3 fully con
 ### Character Recognition
 * **Training:** Synthetic data generation using affine transformations and Gaussian noise to match the low-fidelity Gazebo textures.
 * **Loss:** Converged after ~10 epochs using Adam optimizer.
+
+<p align="center">
+<caption><b>Figure 3: OCR Neural Network Architecture</b></caption>
+</p>
+<p align="center">
+  <img src="media/ocr_network.png" width="400" />
+</p>
 
 <p align="center">
 <caption><b>Figure 3: OCR Confusion Matrix</b></caption>
