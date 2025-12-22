@@ -79,6 +79,10 @@ We adapted the NVIDIA PilotNet architecture (5 convolutional layers, 3 fully con
 
 **Solution:** We implemented a morphological preprocessing pipeline. We applied **erosion** to separate the connected white pixels of the characters, then calculated bounding boxes, and finally applied **dilation** to restore the character shapes before feeding them into the classification network.
 
+## Authors
+* **Jack Polloway:** Driving Policy (IL), PilotNet Architecture, System Integration.
+* **Ryan Mahinpey:** OCR Pipeline, YOLOv5 Implementation.
+
 ## Appendix (OCR Training Metrics)
 To ensure robust OCR performance on the low-fidelity Gazebo textures, we tracked the training stability of our custom CNN. The model converged after approximately 10 epochs, achieving near-perfect validation accuracy on the synthetic dataset.
 
@@ -95,10 +99,6 @@ To ensure robust OCR performance on the low-fidelity Gazebo textures, we tracked
 <p align="center">
   <img src="media/ocr_chart.png" width="600" />
 </p>
-
-## Authors
-* **Jack Polloway:** Driving Policy (IL), PilotNet Architecture, System Integration.
-* **Ryan Mahinpey:** OCR Pipeline, YOLOv5 Implementation.
 
 ---
 *Created for UBC Engineering Physics 353 (2025).*
