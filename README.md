@@ -40,7 +40,9 @@ The robot uses a dual-camera setup to balance inference speed with detection ran
 
 **Solution:** We implemented a morphological preprocessing pipeline. [cite_start]We applied **erosion** to separate the connected white pixels of the characters, then calculated bounding boxes, and finally applied **dilation** to restore the character shapes before feeding them into the classification network[cite: 247, 248].
 
-![Morphological Processing](media/debug_view.png)
+<p align="center">
+  <img src="media/fat_letter.png" width="400" />
+</p>
 
 ### 2. Sim-to-Real Latency (RTF Variance)
 **Problem:** The Imitation Learning model was trained on a local machine with a Real-Time Factor (RTF) of ~0.9. [cite_start]However, the competition server ran at ~0.55 RTF due to overhead, causing the robot to oversteer and oscillate[cite: 153, 298].
