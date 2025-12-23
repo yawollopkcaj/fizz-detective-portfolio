@@ -11,7 +11,7 @@ import torch
 from torch import nn
 
 class PilotNet(nn.Module):
-    # --- UNCHANGED PilotNet DEFINITION ---
+    # PilotNet architecture
     def __init__(self, out_dim=1):
         super().__init__()
         self.conv = nn.Sequential(
@@ -31,7 +31,7 @@ class PilotNet(nn.Module):
     def forward(self, x): return self.fc(self.conv(x))
 
 def preprocess(img, params):
-    # --- UNCHANGED preprocess DEFINITION ---
+    # Preprocess image according to params
     h = img.shape[0]
     top = int(h * params["crop_top"])
     bottom = int(h * (1.0 - params["crop_bottom"]))
@@ -51,13 +51,13 @@ class LaneFollowerRecorder:
         self.bridge = CvBridge()
         self.cmd_pub = rospy.Publisher("/B1/cmd_vel", Twist, queue_size=1)
 
-        # --- Mode ---
+        # Mode
         self.is_autonomous = True # Start in autonomous mode
         self.lock = threading.Lock()
         self.tty_settings = termios.tcgetattr(sys.stdin) # Save old terminal settings
         rospy.on_shutdown(self.cleanup)
 
-        # === IL Model Params ===
+        # IL Model Params
         img_topic = rospy.get_param("~image_topic", "/B1/pi_camera/image_raw")
         model_dir = rospy.get_param("~model_dir", os.path.expanduser("~/il_data/latest/artifacts"))
         model_path = rospy.get_param("~model_path", os.path.join(model_dir, "model.pt"))
@@ -83,13 +83,13 @@ class LaneFollowerRecorder:
         self.last_pub_time = rospy.get_time()
         rospy.loginfo(f"[il] Loaded model from {model_path}")
 
-        # === Recorder Params ===
+        # Recorder Params
         self.recorder_state = {} # Holds csv_file, writer, out_dir, etc.
         self.last_manual_twist = Twist() # For recording
-        self.twist_topic = rospy.get_param("~twist_topic", "/B1/cmd_vel") # Topic to *listen* to for recording
+        self.twist_topic = rospy.get_param("~twist_topic", "/B1/cmd_vel") # Topic to listen to for recording
         self.jpg_quality = int(rospy.get_param("~jpg_quality", 95))
 
-        # === ROS Subs ===
+        # ROS Subs 
         # Subscriber for IL model and Recording
         self.img_sub = rospy.Subscriber(img_topic, Image, self.on_image, queue_size=1, buff_size=2**24)
         # Subscriber for recorder (listens to manual drive commands)
@@ -203,7 +203,7 @@ class LaneFollowerRecorder:
             is_auto = self.is_autonomous
 
         if is_auto:
-            # --- AUTONOMOUS MODE ---
+            # AUTONOMOUS MODE
             # Preprocess image
             x = preprocess(cv_img, self.prep)
             if x.ndim == 3 and x.shape[0] != 3:
@@ -224,13 +224,13 @@ class LaneFollowerRecorder:
             self.cmd_pub.publish(self.last_cmd)
 
         else:
-            # --- MANUAL RECORDING MODE ---
+            # MANUAL RECORDING MODE
             if not self.recorder_state.get("writer"):
                 rospy.logwarn_throttle(1.0, "[recorder] In manual mode but recorder not initialized.")
                 return
 
             # Save image frame
-            idx = int((now % 1e9) * 1e3)  # quasi-unique
+            idx = int((now % 1e9) * 1e3) # Index based on time
             relname = f"frames/frame_{idx:09d}.jpg"
             abspath = os.path.join(self.recorder_state['out_dir'], relname)
             cv2.imwrite(abspath, cv_img, [int(cv2.IMWRITE_JPEG_QUALITY), self.jpg_quality])
@@ -243,16 +243,12 @@ class LaneFollowerRecorder:
             self.recorder_state['writer'].writerow([f"{now:.6f}", f"{steer:.6f}", f"{v:.6f}", relname])
             self.recorder_state['csv_file'].flush()
 
-            # NOTE: We DO NOT publish to cmd_vel here.
-            # Your separate manual controller (joystick/teleop) is doing that.
-            # This script just listens.
-
     def cleanup(self):
         """Called on node shutdown to restore terminal and close files."""
         rospy.loginfo("Restoring terminal settings...")
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.tty_settings)
         self.stop_recording() # Ensure file is closed
-        # Send a final zero-velocity command
+        # Send final zero-velocity command
         rospy.loginfo("Sending stop command.")
         self.cmd_pub.publish(Twist())
 

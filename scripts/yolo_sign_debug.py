@@ -11,7 +11,6 @@ import statistics
 import time
 from collections import Counter, defaultdict
 
-# Try to import Ultralytics and Torch
 try:
     from ultralytics import YOLO
     import torch
@@ -20,18 +19,18 @@ except ImportError:
 
 class SignReaderNode:
     def __init__(self):
-        # 1. INITIALIZE NODE
+        # INITIALIZE NODE
         rospy.init_node('sign_reader_node', anonymous=True)
         
-        # --- COMPETITION CONFIGURATION ---
-        self.TEAM_ID = "TeamRed"      # REPLACE WITH YOUR TEAM ID
-        self.TEAM_PASS = "multi21"    # REPLACE WITH YOUR PASSWORD
+        # COMPETITION CONFIGURATION
+        self.TEAM_ID = "TeamRed"
+        self.TEAM_PASS = "multi21"
         
-        # --- HARDWARE SETTINGS ---
+        # HARDWARE SETTINGS 
         self.USE_CPU = False 
         self.device = 'cpu' if self.USE_CPU else '0'
 
-        # --- PATH CONFIGURATION ---
+        # PATH CONFIGURATION 
         self.sign_model_path = "/home/fizzer/ros_ws/src/controller_pkg/weights/sign.pt" 
         self.char_model_path = "/home/fizzer/ros_ws/src/controller_pkg/weights/best_char.onnx"
         self.topic_name = "/B1/rrbot/camera_wide/image_raw"
@@ -49,45 +48,45 @@ class SignReaderNode:
         self.CONFIDENCE_THRESHOLD = 3 
         self.game_over = False
 
-        # --- TIMING & OPTIMIZATION ---
+        # TIMING & OPTIMIZATION 
         self.frame_count = 0
         self.prev_frame_time = 0 
         
-        # OPTIMIZATION: Process only 1 out of every 3 frames to allow Sim to run fast
+        # Process only 1 out of every 3 frames to allow Sim to run fast
         self.SKIP_FRAMES = 3
         
-        # OPTIMIZATION: Only read text every 0.3s (approx 3 times a second)
+        # Only read text every 0.3s
         self.last_char_inference = 0
         self.CHAR_INFERENCE_RATE = 0.3 
         
         # Periodic Upload Settings
         self.last_periodic_upload = time.time()
-        self.UPLOAD_INTERVAL = 10.0  # Seconds
+        self.UPLOAD_INTERVAL = 10.0 # Seconds
 
-        # --- SETUP PUBLISHER ---
+        # SETUP PUBLISHER
         self.score_pub = rospy.Publisher('/score_tracker', String, queue_size=10)
 
         # Load Models
         self.sign_model = self.load_model_safe(self.sign_model_path, "Sign")
         self.char_model = self.load_model_safe(self.char_model_path, "Character")
 
-        # --- WARMUP ROUTINE ---
+        # WARMUP
         if not self.USE_CPU:
-            print("🔥 Warming up GPU models...")
+            print("Warming up GPU models...")
             try:
                 dummy_frame = np.zeros((640, 640, 3), dtype=np.uint8)
                 self.sign_model(dummy_frame, verbose=False, imgsz=320, device=self.device)
                 self.char_model(dummy_frame, verbose=False, imgsz=640, device=self.device)
-                print("✅ Models warmed up!")
+                print("Models warmed up!")
             except Exception as e:
-                print(f"⚠️ Warmup failed: {e}")
+                print(f"Warmup failed: {e}")
                 self.USE_CPU = True
                 self.device = 'cpu'
 
         self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber(self.topic_name, Image, self.image_callback, queue_size=1)
         
-        print(f"✅ Node Started! Listening to {self.topic_name}...")
+        print(f"Node Started! Listening to {self.topic_name}...")
         
         rospy.sleep(1.0) 
         self.publish_score(0, "START")
@@ -96,7 +95,7 @@ class SignReaderNode:
         clean_pred = prediction.replace(" ", "").upper()
         msg = f"{self.TEAM_ID},{self.TEAM_PASS},{location_id},{clean_pred}"
         self.score_pub.publish(msg)
-        print(f"📡 SENT SCORE: {msg}")
+        print(f"SENT SCORE: {msg}")
 
     def load_model_safe(self, model_path, model_name):
         if not os.path.exists(model_path):
@@ -193,13 +192,13 @@ class SignReaderNode:
             self.last_periodic_upload = time.time()
 
     def flush_remaining_clues(self):
-        print("⚡ BANDIT FOUND! Flushing best guesses...")
+        print("BANDIT FOUND! Flushing best guesses...")
         for h in self.VALID_HEADERS:
             if h == "BANDIT": continue
             if h in self.submitted_facts: continue
             if self.knowledge_base[h]:
                 best_guess, count = self.knowledge_base[h].most_common(1)[0]
-                print(f"⚠️ FORCING: {h} -> {best_guess}")
+                print(f"FORCING: {h} -> {best_guess}")
                 if h in self.HEADER_TO_ID:
                     loc_id = self.HEADER_TO_ID[h]
                     self.publish_score(loc_id, best_guess)
@@ -211,7 +210,7 @@ class SignReaderNode:
         most_common_content, count = self.knowledge_base[header].most_common(1)[0]
         if count >= self.CONFIDENCE_THRESHOLD:
             if header not in self.submitted_facts:
-                print(f"✅ CONFIRMED: {header} -> {most_common_content}")
+                print(f"CONFIRMED: {header} -> {most_common_content}")
                 self.submitted_facts.add(header)
                 if header in self.HEADER_TO_ID:
                     loc_id = self.HEADER_TO_ID[header]
@@ -220,7 +219,7 @@ class SignReaderNode:
                         self.flush_remaining_clues()
                         self.publish_score(-1, "END")
                         self.game_over = True
-                        print("🏁 GAME OVER")
+                        print("GAME OVER")
 
     def image_callback(self, data):
         if self.game_over: return
@@ -228,7 +227,7 @@ class SignReaderNode:
         # Periodic Upload Check
         self.check_periodic_uploads()
 
-        # Frame Skipping (OPTIMIZATION)
+        # Frame Skipping
         self.frame_count += 1
         if self.frame_count % self.SKIP_FRAMES != 0: return
 
@@ -238,7 +237,7 @@ class SignReaderNode:
                 self.process_frame(cv_image)
             except RuntimeError as e:
                 if "out of memory" in str(e):
-                    print("⚠️ GPU OOM")
+                    print("GPU OOM")
                     if torch.cuda.is_available(): torch.cuda.empty_cache()
         except CvBridgeError as e:
             print(e)
@@ -254,7 +253,7 @@ class SignReaderNode:
         # Throttling Logic
         run_char_model = (curr_time - self.last_char_inference) > self.CHAR_INFERENCE_RATE
 
-        # 1. Sign Detection (Fast .pt model, small image)
+        # Sign Detection
         sign_results = self.sign_model(img, verbose=False, conf=0.5, imgsz=320, device=self.device)
         
         for r in sign_results:
@@ -268,7 +267,7 @@ class SignReaderNode:
                 sign_crop = img[y1:y2, x1:x2]
                 if sign_crop.size == 0: continue
 
-                # 2. Character Inference (Throttled)
+                # Character Inference
                 char_results = self.char_model(sign_crop, verbose=False, conf=0.45, imgsz=640, device=self.device)
                 char_detections = []
                 
@@ -296,8 +295,8 @@ class SignReaderNode:
         if run_char_model:
             self.last_char_inference = curr_time
 
-        # --- VISUALIZATION RESIZE ---
-        # Force image to 720p for display to prevent window manager issues
+        # VISUALIZATION RESIZE
+        # Force image to 720p for display to prevent slowdown
         display_img = cv2.resize(vis_img, (640, 360))
         cv2.putText(display_img, f"FPS: {fps:.1f}", (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
 

@@ -19,7 +19,7 @@ class Recorder:
         self.last_twist = Twist()
         self.last_img_time = 0.0
 
-        # ROS params (override in launch if needed)
+        # ROS params (overrided in launch)
         self.img_topic   = rospy.get_param("~image_topic", "/B1/rrbot/camera1/image_raw")
         self.twist_topic = rospy.get_param("~twist_topic", "/B1/cmd_vel")
         self.target_hz   = float(rospy.get_param("~target_hz", 10.0)) # throttle image saves
@@ -71,7 +71,7 @@ class Recorder:
             rospy.logwarn(f"[recorder] CvBridge error: {e}")
             return
 
-        idx = int((now % 1e9) * 1e3)  # quasi-unique in a run
+        idx = int((now % 1e9) * 1e3) # millisecond precision
         relname = f"frames/frame_{idx:09d}.jpg"
         abspath = os.path.join(self.out_dir, relname)
         cv2.imwrite(abspath, cv_img, [int(cv2.IMWRITE_JPEG_QUALITY), self.jpg_quality])

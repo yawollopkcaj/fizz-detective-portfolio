@@ -28,9 +28,9 @@ class PilotNet(nn.Module):
         self.fc = nn.Sequential(
             nn.Flatten(),
             nn.Linear(64*9*9,100), nn.ELU(),
-            nn.Dropout(0.5), # <--- ADD THIS
+            nn.Dropout(0.5),
             nn.Linear(100, 50), nn.ELU(),
-            nn.Dropout(0.5), # <--- ADD THIS
+            nn.Dropout(0.5),
             nn.Linear(50, 10), nn.ELU(),
             nn.Linear(10, out_dim),
         )
@@ -48,7 +48,7 @@ def preprocess(img, params):
     mean = np.array(params["mean"])
     std  = np.array(params["std"]) + 1e-6
     img = (img - mean) / std
-    img = np.transpose(img, (2,0,1))  # CHW
+    img = np.transpose(img, (2,0,1))
     return img
 
 class LaneFollowerIL:
@@ -64,17 +64,17 @@ class LaneFollowerIL:
         yolo_path = rospy.get_param("~yolo_model_path", os.path.join(model_dir, "yolov5s.pt"))
 
         # Limits & smoothing
-        self.max_speed   = float(rospy.get_param("~max_speed", 0.3))         # m/s clamp
-        self.max_steer   = float(rospy.get_param("~max_steer", 2))         # rad clamp
-        self.alpha_speed = float(rospy.get_param("~alpha_speed", 0.5))       # EMA for speed
+        self.max_speed   = float(rospy.get_param("~max_speed", 0.3)) # m/s clamp
+        self.max_steer   = float(rospy.get_param("~max_steer", 2)) # rad clamp
+        self.alpha_speed = float(rospy.get_param("~alpha_speed", 0.5)) # EMA for speed
         self.alpha_steer = float(rospy.get_param("~alpha_steer", 0.5)) # (inverse) how much robot remembers previous speed
         self.steer_gain = float(rospy.get_param("~steer_gain", 1.0))
         self.publish_hz  = float(rospy.get_param("~publish_hz", 30.0))
 
         # Crosswalk and YOLO params
         self.red_pixel_thresh = 20000 # Thresh to trigger stop
-        self.pedestrian_debounce = 0.5  # seconds
-        self.crosswalk_cooldown = 5.0  # seconds
+        self.pedestrian_debounce = 0.5 # seconds
+        self.crosswalk_cooldown = 5.0 # seconds
         self.time_since_last_seen = 0.0
         self.manual_override = False
 
@@ -93,12 +93,9 @@ class LaneFollowerIL:
         try:
             self.yolo = torch.hub.load('ultralytics/yolov5', 'custom', path=yolo_path)
             
-            # Option B: Offline (If you have cloned the yolov5 repo to your robot)
-            # self.yolo = torch.hub.load('/home/fizzer/yolov5', 'custom', path=yolo_path, source='local')
-            
             self.yolo.to(self.device)
             
-           # Make sure pedestrian class is at index 0
+           # Pedestrian class is at index 0
             self.yolo.classes = [0] 
             
             rospy.loginfo("[il] YOLO model loaded successfully.")
@@ -174,7 +171,7 @@ class LaneFollowerIL:
 
     # Main loop with state machine
     def on_image(self, msg: Image):
-        # rate limit publishing to ~publish_hz
+        # rate limit
         now = rospy.get_time()
         if (now - self.last_pub_time) < (1.0 / max(self.publish_hz, 1e-3)):
             return
@@ -189,7 +186,7 @@ class LaneFollowerIL:
         
         debug_img = cv2.resize(cv_img, (200, 200))
 
-        # Display the window so 'p' works BEFORE STARTING TO LINE FOLLOW
+        # Display the window so 'p' works
         try:
             cv2.imshow("Robot View", debug_img)
         except: pass
@@ -243,7 +240,6 @@ class LaneFollowerIL:
                 rospy.loginfo("[il] Cooldown complete. Resuming normal driving.")
                 self.state = DRIVING_STATE
 
-# Main entry point
 def main():
     rospy.init_node("lane_follower_il")
     time.sleep(5.0) # Give ROS graph a moment to wire up
