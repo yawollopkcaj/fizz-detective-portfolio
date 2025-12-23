@@ -45,7 +45,8 @@ The robot uses a dual-camera setup to balance inference speed with detection ran
 We adapted the NVIDIA PilotNet architecture (5 convolutional layers, 3 fully connected).
 * **Modification:** We strictly **removed Dropout layers**. While dropout usually prevents overfitting, we found that for this specific dirt-road terrain, "overfitting" to specific ground textures actually improved performance where lane lines were missing.
 
-**Observation**: Single-Model Generalization
+**Observation: Single-Model Generalization**
+
 We initially hypothesized that the varying terrains (urban paved roads vs. unlined dirt paths) would require switching between specialized model weights for each environment.
 
 Surprisingly, a single PilotNet model generalized effectively across all distinct environments. The network learned to infer implicit road boundaries on the unlined dirt just as effectively as the high-contrast lane lines in the city. This unexpected robustness eliminated the need for complex state-switching logic and allowed us to maintain a lightweight, monolithic inference pipeline.
