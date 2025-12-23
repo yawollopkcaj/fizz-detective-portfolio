@@ -1,6 +1,9 @@
 # Fizz Detective: Autonomous Robot (ROS & Imitation Learning)
 
 <p align="center">
+<caption><b>Full Competition Run (10x Speed)</b></caption>
+</p>
+<p align="center">
   <img src="media/output_fast.gif" width="600" />
 </p>
 
@@ -37,91 +40,74 @@ The robot uses a dual-camera setup to balance inference speed with detection ran
   <img src="media/ENPH-353-Software-Architecture.png" width="600" />
 </p>
 
-## Key Technical Challenges
-
-### 1. The "Fat Letter" Problem (Computer Vision)
-**Problem:** At medium distances, our HSV thresholding filter caused characters on the clue boards (like "SIZE") to bleed together into a single blob, causing the CNN to fail.
-
-**Solution:** We implemented a morphological preprocessing pipeline. We applied **erosion** to separate the connected white pixels of the characters, then calculated bounding boxes, and finally applied **dilation** to restore the character shapes before feeding them into the classification network.
-
-### 2. Sim-to-Real Latency (RTF Variance)
-**Problem:** The Imitation Learning model was trained on a local machine with a Real-Time Factor (RTF) of ~0.9. However, the competition server ran at ~0.55 RTF due to overhead, causing the robot to oversteer and oscillate.
-
-**Solution:** To mitigate this, we implemented a **Recovery Strategy** in our training data. We deliberately recorded "recovery maneuvers" (driving off-center and correcting sharply) to teach the model how to handle state-drift caused by lag.
-
 ## Neural Network Details
 ### PilotNet (Driving Policy)
 We adapted the NVIDIA PilotNet architecture (5 convolutional layers, 3 fully connected).
 * **Modification:** We strictly **removed Dropout layers**. While dropout usually prevents overfitting, we found that for this specific dirt-road terrain, "overfitting" to specific ground textures actually improved performance where lane lines were missing.
 
-==========================================================================================
-Layer (type:depth-idx)                   Output Shape              Param #
-==========================================================================================
-PilotNet                                 [1, 1]                    --
-├─Sequential: 1-1                        [1, 64, 9, 9]             --
-│    └─Conv2d: 2-1                       [1, 24, 62, 62]           1,824
-│    └─ELU: 2-2                          [1, 24, 62, 62]           --
-│    └─Conv2d: 2-3                       [1, 36, 29, 29]           21,636
-│    └─ELU: 2-4                          [1, 36, 29, 29]           --
-│    └─Conv2d: 2-5                       [1, 48, 13, 13]           43,248
-│    └─ELU: 2-6                          [1, 48, 13, 13]           --
-│    └─Conv2d: 2-7                       [1, 64, 11, 11]           27,712
-│    └─ELU: 2-8                          [1, 64, 11, 11]           --
-│    └─Conv2d: 2-9                       [1, 64, 9, 9]             36,928
-│    └─ELU: 2-10                         [1, 64, 9, 9]             --
-├─Sequential: 1-2                        [1, 1]                    --
-│    └─Flatten: 2-11                     [1, 5184]                 --
-│    └─Linear: 2-12                      [1, 100]                  518,500
-│    └─ELU: 2-13                         [1, 100]                  --
-│    └─Linear: 2-14                      [1, 50]                   5,050
-│    └─ELU: 2-15                         [1, 50]                   --
-│    └─Linear: 2-16                      [1, 10]                   510
-│    └─ELU: 2-17                         [1, 10]                   --
-│    └─Linear: 2-18                      [1, 1]                    11
-==========================================================================================
-Total params: 655,419
-Trainable params: 655,419
-Non-trainable params: 0
-Total mult-adds (M): 28.53
-==========================================================================================
+**Observation: Single-Model Generalization**
+
+We initially hypothesized that the varying terrains (urban paved roads vs. unlined dirt paths) would require switching between specialized model weights for each environment.
+
+Surprisingly, a single PilotNet model generalized effectively across all distinct environments. The network learned to infer implicit road boundaries on the unlined dirt just as effectively as the high-contrast lane lines in the city. This unexpected robustness eliminated the need for complex state-switching logic and allowed us to maintain a lightweight, monolithic inference pipeline.
+  
+<p align="center">
+<caption><b>Figure 2: Immitation Learning (IL) Network Architecture</b></caption>
+</p>
+<p align="center">
+  <img src="media/il_network.png" width="600" />
+</p>
 
 ### Character Recognition
 * **Training:** Synthetic data generation using affine transformations and Gaussian noise to match the low-fidelity Gazebo textures.
-* **Loss:** Converged after ~10 epochs using Adam optimizer.
+* **Loss:** Converged after ~10 epochs using Adam optimizer (see appendix).
 
 <p align="center">
-<caption><b>Figure 2: OCR Demo</b></caption>
+<caption><b>Figure 3: Optical Character Recognition (OCR) Demo</b></caption>
 </p>
 <p align="center">
-  <img src="media/ocr_demo.png" width="400" />
-</p>
-
-<p align="center">
-<caption><b>Figure 2: OCR Neural Network Architecture</b></caption>
-</p>
-<p align="center">
-  <img src="media/ocr_network.png" width="400" />
+  <img src="media/ocr_demo.png" width="600" />
 </p>
 
 <p align="center">
-<caption><b>Figure 3: OCR Confusion Matrix</b></caption>
+<caption><b>Figure 4: OCR Network Architecture</b></caption>
 </p>
 <p align="center">
-  <img src="media/ocr_confusion.png" width="400" />
+  <img src="media/ocr_network.png" width="600" />
 </p>
 
-<p align="center">
-<caption><b>Figure 4: OCR Training/Validation Accuracy</b></caption>
-</p>
-<p align="center">
-  <img src="media/ocr_chart.png" width="400" />
-</p>
+## Key Technical Challenges
 
+### 1. Sim-to-Real Latency (RTF Variance)
+**Problem:** The Imitation Learning model was trained on a local machine with a Real-Time Factor (RTF) of ~0.9. However, the competition server ran at ~0.55 RTF due to overhead, causing the robot to oversteer and oscillate.
 
+**Solution:** To mitigate this, we implemented a **Recovery Strategy** in our training data. We deliberately recorded "recovery maneuvers" (driving off-center and correcting sharply) to teach the model how to handle state-drift caused by lag.
+
+### 2. The "Fat Letter" Problem (Computer Vision)
+**Problem:** At medium distances, our HSV thresholding filter caused characters on the clue boards (like "SIZE") to bleed together into a single blob, causing the CNN to fail.
+
+**Solution:** We implemented a morphological preprocessing pipeline. We applied **erosion** to separate the connected white pixels of the characters, then calculated bounding boxes, and finally applied **dilation** to restore the character shapes before feeding them into the classification network.
 
 ## Authors
 * **Jack Polloway:** Driving Policy (IL), PilotNet Architecture, System Integration.
 * **Ryan Mahinpey:** OCR Pipeline, YOLOv5 Implementation.
 
+## Appendix (OCR Training Metrics)
+To ensure robust OCR performance on the low-fidelity Gazebo textures, we tracked the training stability of our custom CNN. The model converged after approximately 10 epochs, achieving near-perfect validation accuracy on the synthetic dataset.
+
+<p align="center">
+<caption><b>Figure 5: OCR Confusion Matrix</b></caption>
+</p>
+<p align="center">
+  <img src="media/ocr_confusion.png" width="600" />
+</p>
+
+<p align="center">
+<caption><b>Figure 6: OCR Training/Validation Accuracy</b></caption>
+</p>
+<p align="center">
+  <img src="media/ocr_chart.png" width="600" />
+</p>
+
 ---
-*Created for UBC Engineering Physics 353 (2025).*
+*Created for UBC ENPH 353 (2025).*
