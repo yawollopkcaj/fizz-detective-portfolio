@@ -10,6 +10,14 @@
 ## Project Overview
 **Fizz Detective** is an autonomous robot software stack developed for the ENPH 353 competition. The objective was to navigate a simulated urban environment in **Gazebo**, adhering to traffic laws while identifying and reading alphanumeric "clue plates" to solve a puzzle.
 
+<p align="center">
+<caption><b>Simulation Arena Overhead View</b></caption>
+</p>
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/cf0e33b8-db77-4a9f-8131-778a4a5c24ad" width="400" />
+</p>
+
 The system utilizes a **Hybrid Control Architecture**, decoupling high-level decision-making (Finite State Machine) from low-level perception (End-to-End Imitation Learning) to optimize for the simulation's Real-Time Factor (RTF).
 
 ### Performance
